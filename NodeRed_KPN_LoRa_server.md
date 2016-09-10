@@ -1,4 +1,4 @@
-Below you will find an example of how to send and receive HTTPS in NodeRed and parse the LoRa data and check the SHA256 token. Furthermore a website is included to receive and send data from NodeRed and sent a downlink message. Please refer to the [wiki](https://github.com/iotacademy/NodeRed_KPN_LoRa/wiki/4.-Basic-Web-Interaction) to get a step by step explanation.
+Below you will find an example of how to send and receive HTTPS in NodeRed and parse the LoRa data and check the SHA256 token. Furthermore a website is included to receive and send data from NodeRed and sent a downlink message. Please refer to the [wiki](https://github.com/iotacademy/NodeRed_KPN_LoRa/wiki) to get a step by step explanation.
 
 Copy the below code, and import through the clipboard in NodeRed
 ```json
