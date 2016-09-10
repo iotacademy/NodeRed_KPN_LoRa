@@ -1,0 +1,120 @@
+<!DOCTYPE HTML>
+
+<!-- Below is adjusted from Simple Web Page on http://flows.nodered.org/flow/8666510f94ad422e4765 -->
+
+<html>
+    <head>
+    <title>LoRa Live Data</title>
+    <script type="text/javascript">
+        var ws;
+        var wsUri = "ws:";
+        var loc = window.location;
+        console.log(loc);
+        if (loc.protocol === "https:") { wsUri = "wss:"; }
+        // This needs to point to the web socket in the Node-RED flow
+        // ... in this case it's ws/simple
+        wsUri += "//" + loc.host + loc.pathname.replace("simple","ws/simple");
+
+        function wsConnect() {
+            console.log("connect",wsUri);
+            ws = new WebSocket(wsUri);
+            //var line = "";    // either uncomment this for a building list of messages
+            ws.onmessage = function(msg) {
+                data = msg.data;
+                var jsonObject = JSON.parse(data);
+                if (jsonObject.type=="LoRaData"){
+                    var table = document.getElementById("webTable");
+                    var row = table.insertRow(1);
+                    var cell1 = row.insertCell(0);
+                    var cell2 = row.insertCell(1);
+                    var cell3 = row.insertCell(2);
+                    cell1.innerHTML = "<p>" + jsonObject.Time + "<p>";
+                    cell2.innerHTML = "<p>" + jsonObject.DevEUI + "<p>";
+                    cell3.innerHTML = "<p>" + jsonObject.LoRaPayload + "<p>";
+    
+                    /* OLD SCRIPT BELOW
+                    var line = "";  // or uncomment this to overwrite the existing message
+                    line += "<p>"+data+"</p>";
+                    line += data;
+                    document.getElementById('messages').innerHTML = line;
+                    */ 
+                } else if (jsonObject.type=="ServerResponse") {
+                    document.getElementById('responsestatus').innerHTML = "" + jsonObject.ServerResponse;
+                } else if (jsonObject.type=="DownlinkURL") {
+                    document.getElementById('urlstatus').innerHTML = "" + jsonObject.DownlinkURL;
+                }
+            }
+            ws.onopen = function() {
+                // update the status div with the connection status
+                document.getElementById('status').innerHTML = "connected";
+                //ws.send("Open for data");
+                console.log("connected");
+            }
+            ws.onclose = function() {
+                // update the status div with the connection status
+                document.getElementById('status').innerHTML = "not connected";
+                // in case of lost connection tries to reconnect every 3 secs
+                setTimeout(wsConnect,3000);
+            }
+        }
+        function isHex(h) {
+            var a = parseInt(h,16);
+            return (a.toString(16) ===h.toLowerCase());
+        }
+        
+        function doit() {
+            if (ws) { 
+                var m = document.getElementById("downlinkdata").value;
+                var se = document.getElementById('downlinkstatus');
+                if (isHex(m)) {
+                    ws.send(m);
+                    se.innerHTML = "Sent '"+ m +"'";
+                } else {
+                    se.innerHTML = "Error: Downlink should be hexadecimal!";
+                    document.getElementById('responsestatus').innerHTML = "N/A";
+                    document.getElementById('urlstatus').innerHTML = "N/A";
+                }
+            }
+        }
+    </script>
+
+    <style>
+        table {
+            font-family: arial, sans-serif;
+            border-collapse: collapse;
+            width: 100%;
+        }
+        
+        td, th {
+            border: 1px solid #dddddd;
+            text-align: left;
+            padding: 2px;
+        }
+        
+        tr:nth-child(even) {
+            background-color: #dddddd;
+        }
+    </style>
+    </head>
+    <body onload="wsConnect();" onunload="ws.disconnect();">
+    
+    <h1>Basic LoRa Live Display</h1>
+    <p>Below data from your Node-Red is displayed. Refresh page to reset table.</p>
+    <table id="webTable">
+      <tr>
+        <th>Time</th>
+        <th>DevEUI</th>
+        <th>LoRaPayload</th>
+      </tr>
+    </table>
+    <br>
+    <p>Respond to your LoRa device with a hexadecimal downlink</p>
+    <input type="text" id="downlinkdata" value="">
+    <button type="button" onclick='doit();'>Send Downlink</button>
+    <hr/>
+    <b>Status of page</b> : <div id="status">unknown</div>
+    <b>Sending payload</b> : <div id="downlinkstatus">N/A</div>
+    <b>Downlink URL</b> : <div id="urlstatus">N/A</div>
+    <b>Server Response</b> : <div id="responsestatus">N/A</div>
+    </body>
+</html>
